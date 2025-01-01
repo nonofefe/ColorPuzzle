@@ -16,4 +16,3 @@ public class TitleManager : MonoBehaviour
       SceneManager.LoadScene("StageTitle1");
     }
 }
-// 素数迷路,git管理
