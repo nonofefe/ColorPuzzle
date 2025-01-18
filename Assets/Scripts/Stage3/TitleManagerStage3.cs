@@ -7,8 +7,11 @@ using TMPro;
 
 public class TitleManagerStage3 : MonoBehaviour
 {
+    // SerializeField：privateな値をConsole出力するためのもの
     [SerializeField] private GameObject _btnPrefab;
     [SerializeField] private Transform _Parent;
+
+    private List<GameObject> prefabList = new List<GameObject>();
 
     int n;
     
@@ -28,8 +31,9 @@ public class TitleManagerStage3 : MonoBehaviour
       print(k);
     }
 
-    public void PushStartButton(){
+    public void PushCreateButton(){
       // SceneManager.LoadScene("MainScene3");
+      n = prefabList.Count + 1;
       GameObject button = Instantiate(_btnPrefab, _Parent) as GameObject;
       button.transform.SetParent(_Parent,false);
       // print(n);
@@ -38,6 +42,19 @@ public class TitleManagerStage3 : MonoBehaviour
       //引数に何番目のボタンかを渡す
       int t = n;
       button.GetComponent<Button>().onClick.AddListener(() => PushButtonShape(t));
-      n++;
+      prefabList.Add(button);
+    }
+
+    public void PushDeleteButton(){
+      // if (instantiatedPrefab != null) {
+      //   Destroy(instantiatedPrefab); 
+      // }
+      int index = prefabList.Count-1;
+      if (index >= 0 && index < prefabList.Count) {
+        GameObject prefabToDelete = prefabList[index];
+        prefabList.RemoveAt(index);
+        Destroy(prefabToDelete);
+        // 指定されたPrefabを削除 
+      }
     }
 }

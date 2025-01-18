@@ -34,6 +34,8 @@ public class GameManager1 : MonoBehaviour
 
   // GameのUIで表示するImage
   public GameObject[] ImageShape = new GameObject[3];
+  public GameObject ImageShapePrefab;
+  public Transform ImageShapeParent;
 	public GameObject ImageTarget;
   public GameObject[] ImageMove = new GameObject[3];
 
@@ -42,13 +44,15 @@ public class GameManager1 : MonoBehaviour
 	private AudioSource source;
 
   // ロジックのための変数
+  public int shapeNum;
   public int score = 0;
-	public int highestscore = 0;
+	public int highestScore = 0;
   private int[] buttonselect = new int[3];
   private int target;
 
   // スクリプトが適用されたオブジェクトがアクティブになった際に、一度だけ呼び出される
   void Start(){
+    shapeNum = 3;
     buttonselect [0] = YELLOW_CIRCLE;
 		buttonselect [1] = RED_CIRCLE;
 		buttonselect [2] = BLUE_CIRCLE;
@@ -191,9 +195,9 @@ public class GameManager1 : MonoBehaviour
 	}
 
   public void PushButtonReset(){
-		if(highestscore < score){  
+		if(highestScore < score){  
 			textHighestScore.text = "最高得点 : " + score.ToString();
-			highestscore = score;
+			highestScore = score;
 		}
 		// source.PlayOneShot(GameBGM);
 		score = 0;
