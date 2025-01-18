@@ -26,7 +26,7 @@ public class GameManager1 : MonoBehaviour
   // imageに描くObjectの配列
   public Sprite[] Obje = new Sprite[9];
   
-	// 無効化するボタンはButtonで実装
+	// 無効化するボタンはButtonで実装　-> 結局はGameObjectで非表示にするように変更
   public GameObject[] buttonShape = new GameObject[3];
   
   // 非表示にするボタンはGameObjectで実装
@@ -173,17 +173,17 @@ public class GameManager1 : MonoBehaviour
 	public void GameOver(){
     print(score);
 		TextGameOver.text = "得点 : " + score.ToString();
-		if (score < 30) {
-			TextGameOver.text += "\nもっと\n上を目指そう!";
-		} else if (30 <= score && score < 70) {
-			TextGameOver.text += "\nこれが・・・\nあなたの・・・\n実力・・・!";
-		} else if (70 <= score && score < 100) {
-			TextGameOver.text += "\n神社に来たのに５円玉がない\nそんな気分";
-		} else if (100 <= score && score < 200) {
-			TextGameOver.text += "\nおめでとう!\n今日は焼肉だ!";
-		} else if (200 <= score) {
-			TextGameOver.text += "\nすごい!\nこのゲームで食っていけるぞ！";
-		}
+		// if (score < 30) {
+		// 	TextGameOver.text += "\nもっと\n上を目指そう!";
+		// } else if (30 <= score && score < 70) {
+		// 	TextGameOver.text += "\nこれが・・・\nあなたの・・・\n実力・・・!";
+		// } else if (70 <= score && score < 100) {
+		// 	TextGameOver.text += "\n神社に来たのに５円玉がない\nそんな気分";
+		// } else if (100 <= score && score < 200) {
+		// 	TextGameOver.text += "\nおめでとう!\n今日は焼肉だ!";
+		// } else if (200 <= score) {
+		// 	TextGameOver.text += "\nすごい!\nこのゲームで食っていけるぞ！";
+		// }
 		StartCoroutine ("Ending");
 		//TextGameOver.SetActive (true);
 		//yield return new WaitForSeconds(2);
