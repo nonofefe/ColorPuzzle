@@ -18,13 +18,13 @@ public class GameManager1 : MonoBehaviour
 	public const int BLUE_TRIANGLE = 7;
 	public const int BLUE_SQUARE = 8;
   
+  // imageに描くObjectの配列
+  public Sprite[] Obje = new Sprite[9];
+
   // 表示するテキスト
   public TMP_Text scoreDisplay;
 	public TMP_Text TextGameOver;
 	public TMP_Text textHighestScore;
-
-  // imageに描くObjectの配列
-  public Sprite[] Obje = new Sprite[9];
   
 	// 無効化するボタンはButtonで実装　-> 結局はGameObjectで非表示にするように変更
   public GameObject[] buttonShape = new GameObject[3];
@@ -64,6 +64,10 @@ public class GameManager1 : MonoBehaviour
   // 毎フレーム実行される処理
   void Update(){
         
+  }
+
+  void initFunc(int num){
+    
   }
 
   public void PushButonLeft(){
