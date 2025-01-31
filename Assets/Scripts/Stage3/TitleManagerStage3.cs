@@ -17,31 +17,17 @@ public class TitleManagerStage3 : MonoBehaviour
     // private List<GameObject> prefabList = new List<GameObject>();
     private List<ItemTest> prefabList = new List<ItemTest>();
     int n;
-
-    private GameObject imageprefab;
-    private Vector3 targetPosition = new Vector3(1, 1, 0); // Target position for the image
-    private float speed = 1f;
-    private float timer = 0f;
     
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-      imageprefab = itemPrefab.transform.Find("ImagePrefab").gameObject;
+
     }
 
     // Update is called once per frame
     void Update()
     {
-      // GameObject image = itemPrefab.transform.Find("ImagePrefab").gameObject;
-      if (imageprefab != null){
-        // Move the image towards the target position
-        if(timer % 60 == 0){
-          imageprefab.transform.localPosition = new Vector3(0,0,0);
-        }else{
-          imageprefab.transform.localPosition = imageprefab.transform.localPosition + targetPosition * speed;
-        }
-        timer++;
-      }
+
     }
 
     public void PushButtonShape(int k){
@@ -50,10 +36,10 @@ public class TitleManagerStage3 : MonoBehaviour
 
     public void PushCreateButton(){
       // SceneManager.LoadScene("MainScene3");
+      
       n = prefabList.Count + 1;
       GameObject item = Instantiate(itemPrefab, _Parent) as GameObject;
       item.transform.SetParent(_Parent,false);
-      // print(n);
       GameObject button = item.transform.Find("ButtonPrefab").gameObject;
       GameObject image = item.transform.Find("ImagePrefab").gameObject;
       
@@ -66,16 +52,12 @@ public class TitleManagerStage3 : MonoBehaviour
     }
 
     public void PushDeleteButton(){
-      // if (instantiatedPrefab != null) {
-      //   Destroy(instantiatedPrefab); 
-      // }
       int index = prefabList.Count-1;
       if (index >= 0 && index < prefabList.Count) {
         print(index);
         ItemTest prefabToDelete = prefabList[index];
         prefabList.RemoveAt(index);
         Destroy(prefabToDelete.gameObject);
-        // 指定されたPrefabを削除 
       }
     }
 }

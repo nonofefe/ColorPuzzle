@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 using TMPro;
+using System.Linq;
 
 public class GameManager1 : MonoBehaviour
 {
@@ -17,6 +18,9 @@ public class GameManager1 : MonoBehaviour
 	public const int BLUE_CIRCLE = 6;
 	public const int BLUE_TRIANGLE = 7;
 	public const int BLUE_SQUARE = 8;
+
+  // 初期のアイテム数
+  public const int INIT_ITEM_COUNT = 3;
   
   // imageに描くObjectの配列
   public Sprite[] Obje = new Sprite[9];
@@ -26,18 +30,11 @@ public class GameManager1 : MonoBehaviour
 	public TMP_Text TextGameOver;
 	public TMP_Text textHighestScore;
   
-	// 無効化するボタンはButtonで実装　-> 結局はGameObjectで非表示にするように変更
-  public GameObject[] buttonShape = new GameObject[3];
-  
   // 非表示にするボタンはGameObjectで実装
   public GameObject ButtonRetry;
 
   // GameのUIで表示するImage
-  public GameObject[] ImageShape = new GameObject[3];
-  public GameObject ImageShapePrefab;
-  public Transform ImageShapeParent;
 	public GameObject ImageTarget;
-  public GameObject[] ImageMove = new GameObject[3];
 
 	// public AudioClip clearSE;
 	// public AudioClip GameBGM;
@@ -47,18 +44,20 @@ public class GameManager1 : MonoBehaviour
   public int shapeNum;
   public int score = 0;
 	public int highestScore = 0;
-  private int[] buttonselect = new int[3];
+  private int[] buttonselect = new int[99];
   private int target;
+
+  // SerializeField：privateな値をConsole出力するためのもの
+  [SerializeField] private GameObject itemPrefab;
+  [SerializeField] private Transform itemGroup;
+
+  // private List<GameObject> itemList = new List<GameObject>();
+  private List<GameObject> itemList = new List<GameObject>();
 
   // スクリプトが適用されたオブジェクトがアクティブになった際に、一度だけ呼び出される
   void Start(){
-    shapeNum = 3;
-    buttonselect [0] = YELLOW_CIRCLE;
-		buttonselect [1] = RED_CIRCLE;
-		buttonselect [2] = BLUE_CIRCLE;
-		target = YELLOW_TRIANGLE;
-		// source = gameObject.GetComponent<AudioSource>();
-		ButtonRetry.SetActive(false);
+    InitPrefab();
+    InitGame();
   }
 
   // 毎フレーム実行される処理
@@ -66,136 +65,177 @@ public class GameManager1 : MonoBehaviour
         
   }
 
-  void initFunc(int num){
-    
+  // ゲーム開始時に呼ばれるメソッド
+  void InitGame(){
+    // スコアの初期化
+    DisplayScore(0);
+    // アイテム数を元の数に戻す
+    ChangeItemCount(INIT_ITEM_COUNT);
+    // ターゲットアイテムを元に戻す
+    InitTarget();
+    // アイテム3つの図形を初期化
+    InitItem3();
+
+		// source = gameObject.GetComponent<AudioSource>();
+    ButtonRetry.SetActive(false);
+    TextGameOver.gameObject.SetActive (false);
   }
 
-  public void PushButonLeft(){
-		ChangeTarget (0);
-	}
-	public void PushButonCenter(){
-		ChangeTarget (1);
-	}
-	public void PushButonRight(){
-		ChangeTarget (2);
-	}
+  // プレハブの初期設定
+  void InitPrefab(){
+    int n = itemList.Count;
+    GameObject button = itemPrefab.transform.Find("ButtonPrefab").gameObject;
+    GameObject image = itemPrefab.transform.Find("ImagePrefab").gameObject;
+    button.transform.Find("Text").GetComponent<TextMeshProUGUI>().text = n.ToString();
+    button.GetComponent<Button>().onClick.AddListener(() => PushButtonItem(n));
+    ItemTest itemTest = itemPrefab.AddComponent<ItemTest>();
+    itemList.Add(itemPrefab);
+  }
 
-  // 左からbuttonNo番目のボタンが押された際の挙動
-  void ChangeTarget(int buttonNo){
-		target = buttonselect [buttonNo];
-		buttonselect [buttonNo] = UnityEngine.Random.Range(0, 9);
-		// ImageTarget.GetComponent<Image> ().sprite = Obje [target];
-		ImageMove[buttonNo].GetComponent<Image> ().sprite = Obje [target];//
+  // ターゲットの図形を初期値で設定
+  void InitTarget(){
+    target = YELLOW_CIRCLE;
+    ImageTarget.GetComponent<Image> ().sprite = Obje[0];
+		ImageTarget.SetActive(true);
+  }
 
-		buttonShape [buttonNo].GetComponent<Image> ().sprite = Obje [buttonselect [buttonNo]];
-		ImageShape [buttonNo].GetComponent<Image> ().sprite = Obje [buttonselect [buttonNo]];
-		for (int i = 0; i < 3; i++) {
-			buttonShape[i].SetActive(false);
-      ImageShape[i].SetActive(true);
+  // アイテム3つの図形を初期値で設定
+  void InitItem3(){
+    for(int i = 0;i < 3;i++){
+      GameObject button = itemList[i].transform.Find("ButtonPrefab").gameObject;
+      GameObject image = itemList[i].transform.Find("ImagePrefab").gameObject;
+      buttonselect[i] = i*3;
+			button.GetComponent<Image> ().sprite = Obje [i*3];
+			image.GetComponent<Image> ().sprite = Obje [i*3];
+			button.SetActive (true);
+			image.SetActive (false);
 		}
-		for (int i = 0; i < 3; i++) {//
-			if (i == buttonNo) {
-        ImageMove [i].SetActive (false);
-				ImageMove [i].SetActive (true);
-			} else {
-				ImageMove [i].SetActive (false);
-			}
+  }
+
+  // アイテムの個数を設定
+  void ChangeItemCount(int num){
+    if(num > itemList.Count){
+      while(itemList.Count != num){
+        CreateItem();
+      }
+    }else{
+      while(itemList.Count != num){
+        print(itemList.Count);
+        DeleteItem();
+      }
+    }
+  }
+
+  // アイテムを1つ作成
+  void CreateItem(){
+    int n = itemList.Count;
+    GameObject item = Instantiate(itemPrefab, itemGroup) as GameObject;
+    item.transform.SetParent(itemGroup,false);
+    GameObject button = item.transform.Find("ButtonPrefab").gameObject;
+    GameObject image = item.transform.Find("ImagePrefab").gameObject;
+    button.transform.Find("Text").GetComponent<TextMeshProUGUI>().text = n.ToString();
+    button.GetComponent<Button>().onClick.AddListener(() => PushButtonItem(n));
+    itemList.Add(item);
+  }
+
+  // アイテムを1つ削除
+  void DeleteItem(){
+    int index = itemList.Count-1;
+    if (index >= 0 && index < itemList.Count) {
+      print(index);
+      GameObject prefabToDelete = itemList[index];
+      itemList.RemoveAt(index);
+      Destroy(prefabToDelete);
+    }
+  }
+
+  // 左からbuttonNo番目の図形が押された際の挙動
+  void PushButtonItem(int buttonNo){
+    // 一旦buttonを非表示、imageを表示にする
+		for (int i = 0; i < itemList.Count; i++) {
+			itemList[i].transform.Find("ButtonPrefab").gameObject.SetActive(false);
+      itemList[i].transform.Find("ImagePrefab").gameObject.SetActive(true);
 		}
-		switch (target) {
-		case 0:
-			score++;
-			break;
-		case 1:
-			score += 2;
-			break;
-		case 2:
-			score += 3;
-			break;
-		case 3:
-			score += 2;
-			break;
-		case 4:
-			score += 4;
-			break;
-		case 5:
-			score += 6;
-			break;
-		case 6:
-			score += 3;
-			break;
-		case 7:
-			score += 6;
-			break;
-		case 8:
-			score += 9;
-			break;
-		}
-		StartCoroutine ("TargetVanish");
+    // スコアの更新
+    score += target+1;
+		StartCoroutine(PostProcess(buttonNo));
 	}
 
-  IEnumerator TargetVanish(){
-		ImageTarget.SetActive (true);
-		yield return new WaitForSeconds(1f);
-		// ImageTarget.SetActive (false);
-		ImageTarget.GetComponent<Image> ().sprite = Obje [target];
-
+  // 後処理
+  IEnumerator PostProcess(int buttonNo){
+    yield return StartCoroutine(ItemMove(buttonNo));
+    ItemUpdate(buttonNo);
     DisplayScore (score);
-
-    for (int i = 0; i < 3; i++) {
-			if ((buttonselect [i] / 3 != target / 3) && (buttonselect [i] % 3 != target % 3)) {
-				buttonShape [i].SetActive (false);
-				ImageShape [i].SetActive (true);
-			} else {
-				buttonShape [i].SetActive (true);
-				ImageShape [i].SetActive (false);
-			}
-		}
-
-		if ((buttonShape [0].activeSelf == false) && (buttonShape [1].activeSelf == false) && (buttonShape [2].activeSelf == false)) {
-			GameOver();
-		}
+    CheckGameOver();
 	}
 
-	IEnumerator Ending (){
+  // Itemを動かすアニメーション
+  IEnumerator ItemMove(int buttonNo){
+    GameObject itemSelected = itemList[buttonNo];
+    GameObject imageSelected = itemSelected.transform.Find("ImagePrefab").gameObject;
+    GameObject buttonSelected = itemSelected.transform.Find("ButtonPrefab").gameObject;
+    RectTransform rectTransform = imageSelected.GetComponent<RectTransform>();
+    Vector3 startPosition = rectTransform.position;
+    Vector3 targetPosition = ImageTarget.GetComponent<RectTransform>().position;
+    float duration = 0.5f;
+    float elapsedTime = 0f;
+    while(elapsedTime < duration){
+      rectTransform.position = Vector3.Lerp(startPosition, targetPosition, elapsedTime/duration);
+      elapsedTime += Time.deltaTime;
+      yield return null;
+    }
+    rectTransform.position = startPosition;
+  }
+
+  public void ItemUpdate(int buttonNo){
+    GameObject itemSelected = itemList[buttonNo];
+    GameObject imageSelected = itemSelected.transform.Find("ImagePrefab").gameObject;
+    GameObject buttonSelected = itemSelected.transform.Find("ButtonPrefab").gameObject;
+    // 以下itemとtargetの形の更新
+    target = buttonselect [buttonNo];
+		ImageTarget.GetComponent<Image> ().sprite = Obje [target];
+		buttonselect [buttonNo] = UnityEngine.Random.Range(0, 9);
+		buttonSelected.GetComponent<Image> ().sprite = Obje [buttonselect [buttonNo]];
+		imageSelected.GetComponent<Image> ().sprite = Obje [buttonselect [buttonNo]];
+    // 以下それぞれのitemがpushできるかの設定
+    for (int i = 0; i < itemList.Count; i++) {
+      GameObject button = itemList[i].transform.Find("ButtonPrefab").gameObject;
+      GameObject image = itemList[i].transform.Find("ImagePrefab").gameObject;
+			if ((buttonselect[i] / 3 != target / 3) && (buttonselect [i] % 3 != target % 3)) {
+				button.SetActive (false);
+				image.SetActive (true);
+			} else {
+				button.SetActive (true);
+				image.SetActive (false);
+			}
+		}
+  }
+
+  public void CheckGameOver(){
+    if (itemList.All(item => !item.transform.Find("ButtonPrefab").gameObject.activeSelf)) {
+      GameOver();
+    }
+  }
+
+  public void GameOver(){
+    print(score);
+    TextGameOver.text = "GAME OVER!\n";
+		TextGameOver.text += "得点 : " + score.ToString();
+    TextGameOver.gameObject.SetActive (true);
+		StartCoroutine ("RetryShowAnimation");
+	}
+
+	IEnumerator RetryShowAnimation(){
 		// source.Stop();
 		// source.PlayOneShot(clearSE);
-		TextGameOver.gameObject.SetActive (true);
-		yield return new WaitForSeconds(4);
-
-		for(int i = 0;i < 3;i++){
-			buttonShape [i].SetActive (false);
-			ImageShape [i].SetActive (false);
-			ImageMove[i].SetActive(false);
-		}
-		ImageTarget.SetActive(false);
-
-		TextGameOver.gameObject.SetActive (false);
+		yield return new WaitForSeconds(1);
 		ButtonRetry.SetActive(true);
 	}
 
 
 	public void DisplayScore(int score){
-		scoreDisplay.text = score.ToString();
-	}
-
-	public void GameOver(){
-    print(score);
-		TextGameOver.text = "得点 : " + score.ToString();
-		// if (score < 30) {
-		// 	TextGameOver.text += "\nもっと\n上を目指そう!";
-		// } else if (30 <= score && score < 70) {
-		// 	TextGameOver.text += "\nこれが・・・\nあなたの・・・\n実力・・・!";
-		// } else if (70 <= score && score < 100) {
-		// 	TextGameOver.text += "\n神社に来たのに５円玉がない\nそんな気分";
-		// } else if (100 <= score && score < 200) {
-		// 	TextGameOver.text += "\nおめでとう!\n今日は焼肉だ!";
-		// } else if (200 <= score) {
-		// 	TextGameOver.text += "\nすごい!\nこのゲームで食っていけるぞ！";
-		// }
-		StartCoroutine ("Ending");
-		//TextGameOver.SetActive (true);
-		//yield return new WaitForSeconds(2);
-		//TextGameOver.SetActive (false);
+    this.score = score;
+		scoreDisplay.text = "得点 : " + score.ToString();
 	}
 
   public void PushButtonReset(){
@@ -204,17 +244,6 @@ public class GameManager1 : MonoBehaviour
 			highestScore = score;
 		}
 		// source.PlayOneShot(GameBGM);
-		score = 0;
-		DisplayScore (score);
-		for(int i = 0;i < 3;i++){
-			buttonShape [i].GetComponent<Image> ().sprite = Obje [i*3];
-			ImageShape [i].GetComponent<Image> ().sprite = Obje [i*3];
-			buttonShape [i].SetActive (true);
-			ImageShape [i].SetActive (false);
-		}
-		ImageTarget.GetComponent<Image> ().sprite = Obje[0];
-		ImageTarget.SetActive(true);
-
-		Start();
+		InitGame();
 	}
 }
